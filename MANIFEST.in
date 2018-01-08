@@ -1,0 +1,3 @@
+graft status_checker/templates
+graft status_checker/static
+include status_checker/schema.sql
