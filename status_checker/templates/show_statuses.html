@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% for entry in entries %}
+    <table>
+    <thead><tr><th colspan="2">{{ entry.search }}</th></tr></thead>
+    <tbody>
+    {% for result in entry.results %}
+        <tr><td><img src="{{ result.url }}" alt="book cover" /></td>
+        <td><b>{{ result.title }}</b> by {{ result.author }}
+        <br />{{ result.status }}</td>
+        </tr>
+    {% else %}
+        <tr><td colspan="2">No results were found for this book in the catalog.</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>    
+    <br />
+    <br />
+  {% else %}
+    <p>Unbelievable.  No entries here so far.</p>
+  {% endfor %}
+{% endblock %}

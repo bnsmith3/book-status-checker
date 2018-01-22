@@ -2,19 +2,21 @@
 {% block body %}
   {% if session.logged_in %}
     <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
-      <dl>
-        <dt>Title:
-        <dd><input type=text size=30 name=title>
-        <dt>Author:
-        <dd><textarea name=author rows=5 cols=40></textarea>
-        <dt>&nbsp;</dt>
-        <dd><input type=submit value=Share>
-      </dl>
+      <table>
+        <tr><td>Title:</td>
+        <td><textarea name=title rows=2 cols=40></textarea></td></tr>
+        <tr><td>Author:</td>
+        <td><input type=text size=40 name=author></td></tr>
+        <tr><td>Has Read?:</td>
+        <td><input type=text size=40 name=read value='N'></td></tr>
+        <tr><td colspan="2">&nbsp;</td></tr>
+        <tr><td colspan=2"><input type=submit value=Save></td></tr>
+      </table>
     </form>
   {% endif %}
   <ul class=entries>
   {% for entry in entries %}
-    <li><h2>{{ entry.title }}</h2> by {{ entry.author|safe }}
+    <li><a href="{{ url_for('show_entry', book_id=entry.id)}}">{{ entry.title }}</a> by {{ entry.author|safe }}
   {% else %}
     <li><em>Unbelievable.  No entries here so far</em>
   {% endfor %}

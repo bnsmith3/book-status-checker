@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="{{ url_for('show_entry', book_id=book_id) }}" method=post class=add-entry>
+      <table>
+        <tr><td>Title:</td>
+        <td><textarea name=title rows=2 cols=40>{{ title }}</textarea></td></tr>
+        <tr><td>Author:</td>
+        <td><input type=text size=40 name=author value="{{ author }}"></td></tr>
+        <tr><td>Has Read?:</td>
+        <td><input type=text size=40 name=read value={{ has_read }}></td></tr>
+        <tr><td colspan="2"><input type=hidden value={{ book_id }}></td></tr>
+        <tr><td colspan=2"><input type=submit value=Update></td></tr>
+      </table>
+    </form>
+  {% endif %}
+  {% if title %}
+  <ul class=entries>
+    <li><h2>{{ title }}</h2> by {{ author }}
+  </ul>
+  <br />
+  <table>
+    <tbody>
+    {% for result in results %}
+        <tr><td><img src="{{ result.url }}" alt="book cover" /></td>
+        <td><b>{{ result.title }}</b> by {{ result.author }}
+        <br />{{ result.status }}</td>
+        </tr>
+    {% else %}
+        <tr><td colspan="2">No results were found for this book in the catalog.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>     
+  {% endif %}
+{% endblock %}

@@ -7,6 +7,7 @@ Created on Sun Jan  7 13:30:37 2018
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
+from status_checker.library_search import search_for_book, get_session_info
 
 app = Flask(__name__, instance_relative_config=True) # create the application instance
 app.config.from_pyfile('application.cfg', silent=True)
@@ -46,7 +47,7 @@ def close_db(error):
 @app.route('/')
 def show_entries():
     db = get_db()
-    cur = db.execute('select title, author, has_read from books order by id desc')
+    cur = db.execute("select id, title, author from books where has_read='N' order by id desc")
     entries = cur.fetchall()
     return render_template('show_entries.html', entries=entries)
 
@@ -55,8 +56,8 @@ def add_entry():
     if not session.get('logged_in'):
         abort(401)
     db = get_db()
-    db.execute('insert into books (title, author) values (?, ?)',
-                 [request.form['title'], request.form['author']])
+    db.execute('insert into books (title, author, has_read) values (?, ?, ?)',
+                 [request.form['title'], request.form['author'], request.form['read']])
     db.commit()
     flash('New entry was successfully posted')
     return redirect(url_for('show_entries'))
@@ -81,3 +82,36 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('show_entries'))
 
+@app.route('/book/<int:book_id>', methods=['GET', 'POST'])
+def show_entry(book_id):
+    db = get_db()
+    
+    if request.method == 'POST':
+        db.execute('update books set title=?, author=?, has_read=? where id=?',
+                     [request.form['title'], request.form['author'], request.form['read'], book_id])
+        db.commit()
+        flash('The entry was successfully updated.')        
+
+    cur = db.execute('select title, author, has_read from books where id=(?)', (book_id,))
+    entry = cur.fetchone()
+    
+    if not entry:
+        entry = ('', '', '')
+        flash('No entry was found with that id.')        
+        results = {'results': []}
+    else:
+        results = search_for_book(entry[0])
+        
+    return render_template('show_entry.html', title=entry[0], author=entry[1], \
+                           has_read=entry[2], book_id=book_id, results=results['results'])
+
+@app.route('/statuses')
+def show_statuses():
+    db = get_db()
+    cur = db.execute("select title from books where has_read='N' order by id desc")
+    entries = cur.fetchall()
+    
+    session = get_session_info()    
+    results = list(map(lambda x: search_for_book(x[0], session), entries))
+
+    return render_template('show_statuses.html', entries=results)
