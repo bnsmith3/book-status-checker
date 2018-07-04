@@ -57,7 +57,7 @@ def close_db(error):
 @app.route('/')
 def show_entries():
     db = get_db()
-    cur = db.execute("select id, title, author from books where has_read='N' order by id desc")
+    cur = db.execute("select id, title, author from books where has_read='N' order by author asc")
     entries = cur.fetchall()
     return render_template('show_entries.html', entries=entries)
 
@@ -121,7 +121,7 @@ def show_entry(book_id):
 @app.route('/statuses')
 def show_statuses():
     db = get_db()
-    cur = db.execute("select title from books where has_read='N' order by id desc")
+    cur = db.execute("select title from books where has_read='N' order by author asc")
     entries = cur.fetchall()
     
     session = get_session_info()    
