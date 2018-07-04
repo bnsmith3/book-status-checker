@@ -1,0 +1,19 @@
+<!doctype html>
+<title>Library Book Status Checker</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<div class=page>
+  <h1><a href="{{ url_for('show_entries')}}">Library Book Status Checker</a></h1>
+  <div class=metanav>
+  {% if not session.logged_in %}
+    <a href="{{ url_for('login') }}">log in</a>
+  {% else %}
+    <a href="{{ url_for('logout') }}">log out</a>
+  {% endif %}
+  </div>
+  {% block body %}
+  <h2>Internal Server Error</h2>
+  <p>Unfortunately, something went awry :-/</p>
+  <p><img src="{{ url_for('static', filename='images/falling.jpeg') }}" style="width:500px;"/></p>
+  <p><a href="{{ url_for('show_entries') }}">Go back to the home page</a>.</p>
+  {% endblock %}
+</div>

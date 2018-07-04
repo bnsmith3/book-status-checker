@@ -23,7 +23,17 @@ def init_db():
     with app.open_resource('schema.sql', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
+    
+@app.errorhandler(500)
+def internal_error(e):
+    app.logger.error('Internal Server Error: {}'.format(e))
+    return render_template('500.html'), 500
 
+@app.errorhandler(404)
+def page_not_found(e):
+    app.logger.error('Page Not Found Error: {}'.format(e))
+    return render_template('404.html'), 404
+	
 @app.cli.command('initdb')
 def initdb_command():
     """Initializes the database."""
@@ -100,7 +110,10 @@ def show_entry(book_id):
         flash('No entry was found with that id.')        
         results = {'results': []}
     else:
-        results = search_for_book(entry[0])
+        try:
+            results = search_for_book(entry[0])
+        except Exception as e:
+            return internal_error(e)
         
     return render_template('show_entry.html', title=entry[0], author=entry[1], \
                            has_read=entry[2], book_id=book_id, results=results['results'])
@@ -112,6 +125,10 @@ def show_statuses():
     entries = cur.fetchall()
     
     session = get_session_info()    
-    results = list(map(lambda x: search_for_book(x[0], session), entries))
+	
+    try:
+        results = list(map(lambda x: search_for_book(x[0], session), entries))
+    except Exception as e:
+    	return internal_error(e)
 
     return render_template('show_statuses.html', entries=results)
