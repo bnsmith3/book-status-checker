@@ -38,21 +38,30 @@ def get_results(content):
     """
     results = []
     soup = bs(content, 'html.parser')
+    
+    # figure out if this is an item page or a search result listing
+    if soup.find('h3').text == 'Item Details':
+        title = soup.find('dd', 'title').text.strip()
+        author = soup.find('dd', 'author').text.strip()
+        status = soup.find('dd', 'copy_info').text.strip()
+        img = get_img_url(soup.find('ul', 'itemservices').find('script').contents[0])
         
-    for img_info, other_info in zip(soup.find_all('ul', 'hit_list_row'), soup.find_all('li', 'hit_list_item_info')):
-        try:
-            img = get_img_url(img_info.find('script').contents[0])
-            
-            title = clean_result(other_info.find('dd', 'title').text)
-    
-            if ('[electronic resource]' not in title) and ('[Large print edition.]' not in title):
-                author = other_info.find('dd', 'author').text.strip()
-                status = clean_result(other_info.find('dd', 'holdings_statement').text)
-    
-                results.append({'title': title, 'author': author, 'status': status, 'url': img})
-        except AttributeError:
-            # if it gets here, most likely no results were found
-            break
+        results.append({'title': title, 'author': author, 'status': status, 'url': img})
+    else:        
+        for img_info, other_info in zip(soup.find_all('ul', 'hit_list_row'), soup.find_all('li', 'hit_list_item_info')):
+            try:
+                img = get_img_url(img_info.find('script').contents[0])
+                
+                title = clean_result(other_info.find('dd', 'title').text)
+        
+                if ('[electronic resource]' not in title) and ('[Large print edition.]' not in title):
+                    author = other_info.find('dd', 'author').text.strip()
+                    status = clean_result(other_info.find('dd', 'holdings_statement').text)
+        
+                    results.append({'title': title, 'author': author, 'status': status, 'url': img})
+            except AttributeError:
+                # if it gets here, most likely no results were found
+                break
     return results
 
 def search_for_book(search, session=None, payload=None):
