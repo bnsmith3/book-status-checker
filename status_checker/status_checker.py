@@ -59,7 +59,14 @@ def show_entries():
     db = get_db()
     cur = db.execute("select id, title, author from books where has_read='N' order by author asc")
     entries = cur.fetchall()
-    return render_template('show_entries.html', entries=entries)
+    return render_template('show_entries.html', page_title="Books to Read", entries=entries)
+
+@app.route('/read')
+def show_read_entries():
+    db = get_db()
+    cur = db.execute("select id, title, author from books where has_read='Y' order by author asc")
+    entries = cur.fetchall()
+    return render_template('show_entries.html', page_title="Completed Books", entries=entries)
 
 @app.route('/add', methods=['POST'])
 def add_entry():
@@ -118,12 +125,20 @@ def show_entry(book_id):
     return render_template('show_entry.html', title=entry[0], author=entry[1], \
                            has_read=entry[2], book_id=book_id, results=results['results'])
 
-@app.route('/statuses')
+@app.route('/statuses', methods=['GET', 'POST'])
 def show_statuses():
     db = get_db()
-    cur = db.execute("select title from books where has_read='N' order by author asc")
-    entries = cur.fetchall()
-    
+    if request.method == 'POST':
+        ids = list(map(int, request.form.getlist('check')))
+        if len(ids) > 0:
+            cur = db.execute("select title from books where id in ({}) order by author asc".format(','.join(['?']*len(ids))), ids)
+            entries = cur.fetchall()        
+        else:
+            entries = []
+    else:        
+        cur = db.execute("select title from books where has_read='N' order by author asc")
+        entries = cur.fetchall()
+        
     session = get_session_info()    
 	
     try:

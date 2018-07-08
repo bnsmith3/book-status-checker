@@ -8,7 +8,7 @@ Search the Fairfax Country Library catalog for books and their availability.
 
 import requests
 from bs4 import BeautifulSoup as bs
-from regex import sub, findall
+from regex import sub, findall, search
 
 def get_session_info():
     """Get the new session information necessary to search the catalog."""
@@ -27,9 +27,14 @@ def get_img_url(results):
     
     results = findall(r'\'([\d,]*)\'', results)
     results = [a.strip() for a in results if len(a.strip()) > 1]    
-    isbn = results[0] if ',' not in results[0] else results[0].split(',')[0]    
     
-    return url.format(isbn, results[-1])
+    if len(results) > 0:
+        isbn = results[0] if ',' not in results[0] else results[0].split(',')[0]    
+        img_url = url.format(isbn, results[-1])
+    else:
+        img_url = ''
+    
+    return img_url
 
 def get_results(content):
     """Return a list of dictionaries with title, author, book status, and img urls as entries.
@@ -49,12 +54,11 @@ def get_results(content):
         results.append({'title': title, 'author': author, 'status': status, 'url': img})
     else:        
         for img_info, other_info in zip(soup.find_all('ul', 'hit_list_row'), soup.find_all('li', 'hit_list_item_info')):
-            try:
-                img = get_img_url(img_info.find('script').contents[0])
-                
+            try:               
                 title = clean_result(other_info.find('dd', 'title').text)
         
-                if ('[electronic resource]' not in title) and ('[Large print edition.]' not in title):
+                if not search('\[electronic resource|Large print edition\.|sound recording\]', title):
+                    img = get_img_url(img_info.find('script').contents[0])
                     author = other_info.find('dd', 'author').text.strip()
                     status = clean_result(other_info.find('dd', 'holdings_statement').text)
         

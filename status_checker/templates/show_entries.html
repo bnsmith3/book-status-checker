@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+<h3>{{ page_title }} ({{ entries|length }})</h3>
   {% if session.logged_in %}
     <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
       <table>
@@ -14,11 +15,15 @@
       </table>
     </form>
   {% endif %}
-  <ul class=entries>
+  <form action="{{ url_for('show_statuses') }}" method=post>
+  <ul class=entries>  
   {% for entry in entries %}
-    <li><a href="{{ url_for('show_entry', book_id=entry.id)}}">{{ entry.title }}</a> by {{ entry.author|safe }}
+    <li><input type="checkbox" name="check" value={{ entry.id }} />  <a href="{{ url_for('show_entry', book_id=entry.id)}}">{{ entry.title }}</a> by {{ entry.author|safe }}
   {% else %}
     <li><em>Unbelievable.  No entries here so far</em>
   {% endfor %}
   </ul>
+  <br />
+  <input type="submit" value="Get Status(es)">
+  </form>
 {% endblock %}
