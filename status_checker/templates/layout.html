@@ -1,7 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
 <title>Library Book Status Checker</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 <div class=page>
   <h1><a href="{{ url_for('show_entries')}}">Library Book Status Checker</a></h1>
   <div class="metanav">
@@ -19,3 +23,5 @@
   {% endfor %}
   {% block body %}{% endblock %}
 </div>
+</body>
+</html>

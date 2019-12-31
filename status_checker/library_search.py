@@ -15,7 +15,11 @@ def get_session_info():
     r = requests.get('https://fcplcat.fairfaxcounty.gov/uhtbin/cgisirsi/0/0/0/49')
     r.raise_for_status()
     soup = bs(r.content, 'html.parser')
-    return soup.find(attrs={"name": "searchform", 'method': 'post'})['action']
+    form_content = soup.find(attrs={"name": "searchform", 'method': 'post'})
+    if form_content and ('action' in form_content):
+        return form_content['action']
+    else:
+        return None
 
 def clean_result(result):
     """Remove extraneous space from the given string."""
@@ -80,7 +84,10 @@ def search_for_book(search, session=None, payload=None):
     if not session:
         session = get_session_info()
 
-    r = requests.post('https://fcplcat.fairfaxcounty.gov{}'.format(session), data=payload)
-    r.raise_for_status()
-    return {'search': search, 'results': get_results(r.content)}
+    if session is not None:
+        r = requests.post('https://fcplcat.fairfaxcounty.gov{}'.format(session), data=payload)
+        r.raise_for_status()
+        return {'search': search, 'results': get_results(r.content)}
+    else:
+        return {'search': search, 'results': []}
         
