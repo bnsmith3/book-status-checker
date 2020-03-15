@@ -8,39 +8,46 @@ Search the Fairfax Country Library catalog for books and their availability.
 
 import requests
 from bs4 import BeautifulSoup as bs
-from regex import sub, findall, search
+from regex import sub
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options 
+from time import sleep
 
 def get_session_info():
     """Get the new session information necessary to search the catalog."""
-    r = requests.get('https://fcplcat.fairfaxcounty.gov/uhtbin/cgisirsi/0/0/0/49')
-    r.raise_for_status()
-    soup = bs(r.content, 'html.parser')
-    form_content = soup.find(attrs={"name": "searchform", 'method': 'post'})
-    if form_content and ('action' in form_content):
-        return form_content['action']
-    else:
-        return None
+    chrome_options = Options() 
+    chrome_options.add_argument("--headless") 
+    browser = webdriver.Chrome(executable_path='../../../../Downloads/chromedriver.exe',  options=chrome_options) 
+    
+    cookies = browser.get_cookies()
+    session = requests.Session()
+    session.headers.update({'Host': 'fcplcat.fairfaxcounty.gov'})
+    
+    for cookie in cookies:
+        session.cookies[cookie['name']] = cookie['value']
+        
+    return session, browser
+
+def end_session(browser):
+    """End the session"""
+    browser.quit()
 
 def clean_result(result):
-    """Remove extraneous space from the given string."""
-    return sub('\s+', ' ', result).strip()
+    """Remove extraneous space and trailing periods from the given string."""
+    return sub('\.$', '', sub('\s+', ' ', result).strip())
 
-def get_img_url(results):
-    """Grab the image information from the given string and return a well-formed url."""
-    url = 'https://secure.syndetics.com/index.aspx?isbn={}/SC.GIF&client=703-324-3100&type=xw12&upc=&oclc={}&'
-    
-    results = findall(r'\'([\d,]*)\'', results)
-    results = [a.strip() for a in results if len(a.strip()) > 1]    
-    
-    if len(results) > 0:
-        isbn = results[0] if ',' not in results[0] else results[0].split(',')[0]    
-        img_url = url.format(isbn, results[-1])
+def get_status(position, session):
+    """Grab the availability information of the content at the given results position."""
+    r1 = session.get('https://fcplcat.fairfaxcounty.gov/search/components/ajaxhoverbibsummary.aspx?pos={}'.format(position))
+    r1.raise_for_status()
+    hit = bs(r1.content, 'html.parser').find('span', 'nsm-short-item nsm-e')
+    if hit:
+        return hit.text.strip()
     else:
-        img_url = ''
-    
-    return img_url
+        return ''
+    pass
 
-def get_results(content):
+def get_results(content, session):
     """Return a list of dictionaries with title, author, book status, and img urls as entries.
     
     Only results that aren't electronic nor large print are returned.
@@ -48,46 +55,47 @@ def get_results(content):
     results = []
     soup = bs(content, 'html.parser')
     
-    # figure out if this is an item page or a search result listing
-    if soup.find('h3').text == 'Item Details':
-        title = soup.find('dd', 'title').text.strip()
-        author = soup.find('dd', 'author').text.strip()
-        status = soup.find('dd', 'copy_info').text.strip()
-        img = get_img_url(soup.find('ul', 'itemservices').find('script').contents[0])
-        
-        results.append({'title': title, 'author': author, 'status': status, 'url': img})
-    else:        
-        for img_info, other_info in zip(soup.find_all('ul', 'hit_list_row'), soup.find_all('li', 'hit_list_item_info')):
-            try:               
-                title = clean_result(other_info.find('dd', 'title').text)
-        
-                if not search('\[electronic resource|Large print edition\.|sound recording\]', title):
-                    img = get_img_url(img_info.find('script').contents[0])
-                    author = other_info.find('dd', 'author').text.strip()
-                    status = clean_result(other_info.find('dd', 'holdings_statement').text)
-        
-                    results.append({'title': title, 'author': author, 'status': status, 'url': img})
-            except AttributeError:
-                # if it gets here, most likely no results were found
-                break
+    for index, info in enumerate(soup.find_all('div', 'c-title-detail__container')):
+        try:               
+            title = '{} (Year: {})'.format(clean_result(info.find('span', 'nsm-e135').text), \
+                     clean_result(info.find('span', 'nsm-short-item nsm-e48').text))
+    
+            resource_types = set([a['title'] for a in info.find_all('img', 'c-title-detail-formats__img')])
+            if len(set(['Ebook', 'DVD', 'Eaudiobook', 'RBdigital']).intersection(resource_types)) == 0:
+                img = info.find('img', 'c-title-detail__thumbnail')['src']
+                author = clean_result(info.find('span', 'nsm-e118').text)
+                #status = '{} (Current holds: {})'.format(get_status(index+1, session), info.find('span', 'nsm-short-item nsm-e8').text)
+                status = 'N/A'
+                call_number = clean_result(info.find('span', 'nsm-short-item nsm-e16385').text)
+    
+                results.append({'title': title, 'author': author, 'status': status, \
+                                'url': img, 'call_number': call_number})
+        except AttributeError:
+            # if it gets here, most likely no results were found
+            break
     return results
 
-def search_for_book(search, session=None, payload=None):
+def search_for_book(search_string, session=None, browser=None, payload=None):
     """Return a dictionary with the search string and a list of the search results as entries.
     
     If the payload isn't specified, it is assumed that the search string provided is a title.
     """
-    if not payload:
-        payload = {'query_type': 'search', 'searchdata1': search, \
-                  'srchfield1': 'TI^TITLE^SERIES^Title+Processing^Title', \
-                  'library': 'ALL', 'sort_by': '-PBYR'}
-    if not session:
-        session = get_session_info()
+    session_was_none = True if (session is None) else False
 
-    if session is not None:
-        r = requests.post('https://fcplcat.fairfaxcounty.gov{}'.format(session), data=payload)
-        r.raise_for_status()
-        return {'search': search, 'results': get_results(r.content)}
+    if not session:
+        session, browser = get_session_info()
+
+    if session is not None: # only attempt a search if we were able to get the session info
+        browser.get('https://fcplcat.fairfaxcounty.gov/search/searchresults.aspx?ctx=1.1033.0.0.1&type=Keyword&term={}&by=TI&sort=RELEVANCE&limit=TOM=*&query=&page=0&searchid=1'.format(search_string))
+        sleep(1)
+        page_content = browser.page_source
+        results = get_results(page_content, session)
+        
+        if session_was_none:
+            end_session(browser)
+            
+        return {'search': search_string, 'results': results, 'page_content': page_content}
     else:
-        return {'search': search, 'results': []}
+        print('Session not retrieved')
+        return {'search': search_string, 'results': []}
         

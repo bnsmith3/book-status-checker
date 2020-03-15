@@ -24,7 +24,8 @@
     {% for result in results %}
         <tr><td><img src="{{ result.url }}" alt="book cover" /></td>
         <td><b>{{ result.title }}</b> by {{ result.author }}
-        <br />{{ result.status }}</td>
+        <br />Call Number: {{ result.call_number }}
+        <br />Availability: {{ result.status }}</td>
         </tr>
     {% else %}
         <tr><td colspan="2">No results were found for this book in the catalog.</td></tr>

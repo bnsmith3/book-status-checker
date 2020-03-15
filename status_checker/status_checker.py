@@ -7,7 +7,7 @@ Created on Sun Jan  7 13:30:37 2018
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
-from status_checker.library_search import search_for_book, get_session_info
+from status_checker.library_search import search_for_book, get_session_info, end_session
 
 app = Flask(__name__, instance_relative_config=True) # create the application instance
 app.config.from_pyfile('application.cfg', silent=True)
@@ -139,10 +139,11 @@ def show_statuses():
         cur = db.execute("select title from books where has_read='N' order by author asc")
         entries = cur.fetchall()
         
-    session = get_session_info()    
+    session, browser = get_session_info()    
 	
     try:
-        results = list(map(lambda x: search_for_book(x[0], session), entries))
+        results = list(map(lambda x: search_for_book(x[0], session, browser), entries))
+        end_session(browser)
     except Exception as e:
     	return internal_error(e)
 
