@@ -18,6 +18,7 @@ def get_session_info():
     chrome_options = Options() 
     chrome_options.add_argument("--headless") 
     browser = webdriver.Chrome(executable_path='../../../../Downloads/chromedriver.exe',  options=chrome_options) 
+    browser.get('https://fcplcat.fairfaxcounty.gov/default.aspx')
     
     cookies = browser.get_cookies()
     session = requests.Session()
@@ -64,8 +65,7 @@ def get_results(content, session):
             if len(set(['Ebook', 'DVD', 'Eaudiobook', 'RBdigital']).intersection(resource_types)) == 0:
                 img = info.find('img', 'c-title-detail__thumbnail')['src']
                 author = clean_result(info.find('span', 'nsm-e118').text)
-                #status = '{} (Current holds: {})'.format(get_status(index+1, session), info.find('span', 'nsm-short-item nsm-e8').text)
-                status = 'N/A'
+                status = '{} (Current holds: {})'.format(get_status(index+1, session), info.find('span', 'nsm-short-item nsm-e8').text)
                 call_number = clean_result(info.find('span', 'nsm-short-item nsm-e16385').text)
     
                 results.append({'title': title, 'author': author, 'status': status, \
