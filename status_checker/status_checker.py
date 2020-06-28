@@ -23,7 +23,7 @@ def init_db():
     with app.open_resource('schema.sql', mode='r') as f:
         db.cursor().executescript(f.read())
     db.commit()
-    
+
 @app.errorhandler(500)
 def internal_error(e):
     app.logger.error('Internal Server Error: {}'.format(e))
@@ -33,7 +33,7 @@ def internal_error(e):
 def page_not_found(e):
     app.logger.error('Page Not Found Error: {}'.format(e))
     return render_template('404.html'), 404
-	
+
 @app.cli.command('initdb')
 def initdb_command():
     """Initializes the database."""
@@ -53,7 +53,7 @@ def close_db(error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
-        
+
 @app.route('/')
 def show_entries():
     db = get_db()
@@ -102,26 +102,26 @@ def logout():
 @app.route('/book/<int:book_id>', methods=['GET', 'POST'])
 def show_entry(book_id):
     db = get_db()
-    
+
     if request.method == 'POST':
         db.execute('update books set title=?, author=?, has_read=? where id=?',
                      [request.form['title'], request.form['author'], request.form['read'], book_id])
         db.commit()
-        flash('The entry was successfully updated.')        
+        flash('The entry was successfully updated.')
 
     cur = db.execute('select title, author, has_read from books where id=(?)', (book_id,))
     entry = cur.fetchone()
-    
+
     if not entry:
         entry = ('', '', '')
-        flash('No entry was found with that id.')        
+        flash('No entry was found with that id.')
         results = {'results': []}
     else:
         try:
             results = search_for_book(entry[0])
         except Exception as e:
             return internal_error(e)
-        
+
     return render_template('show_entry.html', title=entry[0], author=entry[1], \
                            has_read=entry[2], book_id=book_id, results=results['results'])
 
@@ -132,18 +132,18 @@ def show_statuses():
         ids = list(map(int, request.form.getlist('check')))
         if len(ids) > 0:
             cur = db.execute("select title from books where id in ({}) order by author asc".format(','.join(['?']*len(ids))), ids)
-            entries = cur.fetchall()        
+            entries = cur.fetchall()
         else:
             entries = []
-    else:        
+    else:
         cur = db.execute("select title from books where has_read='N' order by author asc")
         entries = cur.fetchall()
-        
-    session, browser = get_session_info()    
-	
+
+    session = get_session_info()
+
     try:
-        results = list(map(lambda x: search_for_book(x[0], session, browser), entries))
-        end_session(browser)
+        results = list(map(lambda x: search_for_book(x[0], session), entries))
+        end_session(session)
     except Exception as e:
     	return internal_error(e)
 
