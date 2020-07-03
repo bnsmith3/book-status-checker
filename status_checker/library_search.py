@@ -17,8 +17,7 @@ def get_session_info():
     try:
         host = 'fcplcat.fairfaxcounty.gov'
         br = mech.Browser()
-        #br.addheaders = [('Host', host)]
-        br.finalize_request_headers = lambda request, headers: headers.__setitem__('Host', host)
+        br.addheaders = [('Host', host)]
         br.open("https://fcplcat.fairfaxcounty.gov/default.aspx")
         br._factory.is_html = True
 
