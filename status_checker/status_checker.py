@@ -139,11 +139,8 @@ def show_statuses():
         cur = db.execute("select title from books where has_read='N' order by author asc")
         entries = cur.fetchall()
 
-    session = get_session_info()
-
     try:
-        results = list(map(lambda x: search_for_book(x[0], session), entries))
-        end_session(session)
+        results = list(map(lambda x: search_for_book(x[0]), entries))
     except Exception as e:
     	return internal_error(e)
 
