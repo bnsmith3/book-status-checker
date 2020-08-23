@@ -62,6 +62,7 @@ def get_results(content, session):
         try:
             title = '{} (Year: {})'.format(clean_result(info.find('span', 'nsm-e135').text), \
                      clean_result(info.find('span', 'nsm-short-item nsm-e48').text))
+            link = info.find('a', 'nsm-brief-action-link')['href']
 
             resource_types = set([a['title'] for a in info.find_all('img', 'c-title-detail-formats__img')])
             if len(set(['Ebook', 'DVD', 'Eaudiobook', 'RBdigital']).intersection(resource_types)) == 0:
@@ -71,7 +72,7 @@ def get_results(content, session):
                 call_number = clean_result(info.find('span', 'nsm-short-item nsm-e16385').text)
 
                 results.append({'title': title, 'author': author, 'status': status, \
-                                'url': img, 'call_number': call_number})
+                                'url': img, 'call_number': call_number, 'link': link})
         except AttributeError:
             # if it gets here, most likely no results were found
             break

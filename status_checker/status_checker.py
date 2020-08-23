@@ -7,7 +7,7 @@ Created on Sun Jan  7 13:30:37 2018
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
-from status_checker.library_search import search_for_book, get_session_info, end_session
+from status_checker.library_search import search_for_book
 
 app = Flask(__name__, instance_relative_config=True) # create the application instance
 app.config.from_pyfile('application.cfg', silent=True)
