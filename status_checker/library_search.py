@@ -65,7 +65,7 @@ def get_results(content, session):
             link = info.find('a', 'nsm-brief-action-link')['href']
 
             resource_types = set([a['title'] for a in info.find_all('img', 'c-title-detail-formats__img')])
-            if len(set(['Ebook', 'DVD', 'Eaudiobook', 'RBdigital']).intersection(resource_types)) == 0:
+            if len(set(['Ebook', 'DVD', 'Eaudiobook', 'RBdigital', 'Audio Book on CD', 'Large Print']).intersection(resource_types)) == 0:
                 img = info.find('img', 'c-title-detail__thumbnail')['src']
                 author = clean_result(info.find('span', 'nsm-e118').text)
                 status = '{} (Current holds: {})'.format(get_status(index+1, session), info.find('span', 'nsm-short-item nsm-e8').text)
