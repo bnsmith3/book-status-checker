@@ -4,13 +4,17 @@
     <form action="{{ url_for('show_entry', book_id=book_id) }}" method=post class=add-entry>
       <table>
         <tr><td>Title:</td>
-        <td><textarea name=title rows=2 cols=40>{{ title }}</textarea></td></tr>
+        <td><textarea name="title" rows="2" cols="40">{{ title }}</textarea></td></tr>
         <tr><td>Author:</td>
-        <td><input type=text size=40 name=author value="{{ author }}"></td></tr>
+        <td><input type="text" size="40" name="author" value="{{ author }}"></td></tr>
         <tr><td>Has Read?:</td>
-        <td><input type=text size=40 name=read value={{ has_read }}></td></tr>
-        <tr><td colspan="2"><input type=hidden value={{ book_id }}></td></tr>
-        <tr><td colspan=2"><input type=submit value=Update></td></tr>
+        <td><input type="text" size="40" name="read" value="{{ has_read }}"></td></tr>
+        <tr><td>Notes:</td>
+        <td><textarea cols="40" name="notes">{{ notes }}</textarea></td></tr>
+        <tr><td>Last Updated:</td>
+        <td><input name="updated" size="40" value="{{ updated }}" readonly></td></tr>
+        <tr><td colspan="2"><input type="hidden" value="{{ book_id }}"></td></tr>
+        <tr><td colspan="2"><input type="submit" value="Update"></td></tr>
       </table>
     </form>
   {% endif %}
