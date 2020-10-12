@@ -111,9 +111,10 @@ def show_entry(book_id):
     db = get_db()
 
     if request.method == 'POST':
-        db.execute('update books2 set title=?, author=?, has_read=?, updated=? where id=?',
+        db.execute('update books2 set title=?, author=?, has_read=?, notes=?, updated=? where id=?',
                      [request.form['title'], request.form['author'], \
-                      request.form['read'], get_utc_time_in_secs(), book_id])
+                      request.form['read'], request.form['notes'], \
+                      get_utc_time_in_secs(), book_id])
         db.commit()
         flash('The entry was successfully updated.')
 
