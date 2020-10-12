@@ -23,7 +23,7 @@
     <tbody>
     {% for result in results %}
         <tr><td><img src="{{ result.url }}" alt="book cover" /></td>
-        <td><b>{{ result.title }}</b> by {{ result.author }}
+        <td><a href="{{ result.link }}">{{ result.title }}</a> by {{ result.author }}
         <br />Call Number: {{ result.call_number }}
         <br />Availability: {{ result.status }}</td>
         </tr>
