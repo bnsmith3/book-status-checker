@@ -61,12 +61,30 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
-@app.route('/')
-def show_entries():
+@app.route('/', defaults={'sort_type': 'A'}, methods=['GET', 'POST'])
+@app.route('/<string:sort_type>', methods=['GET'])
+def show_entries(sort_type):
     db = get_db()
-    cur = db.execute("select id, title, author from books2 where has_read='N' order by author asc")
+
+    if request.method == 'POST':
+        sort_type = request.form['sort_type']
+
+    if sort_type == 'CD':
+        query_str = "select id, title, author from books2 where has_read='N' order by created asc, author asc"
+    elif sort_type == 'CDD':
+            query_str = "select id, title, author from books2 where has_read='N' order by created desc, author asc"
+    elif sort_type == 'UD':
+        query_str = "select id, title, author from books2 where has_read='N' order by updated asc, author asc"
+    elif sort_type == 'UDD':
+            query_str = "select id, title, author from books2 where has_read='N' order by updated desc, author asc"
+    elif sort_type == 'AD':
+            query_str = "select id, title, author from books2 where has_read='N' order by author desc"
+    else:
+        query_str = "select id, title, author from books2 where has_read='N' order by author asc"
+
+    cur = db.execute(query_str)
     entries = cur.fetchall()
-    return render_template('show_entries.html', page_title="Books to Read", entries=entries)
+    return render_template('show_entries.html', page_title="Books to Read", entries=entries, sort_type=sort_type)
 
 @app.route('/read')
 def show_read_entries():

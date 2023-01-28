@@ -2,21 +2,38 @@
 {% block body %}
 <h3>{{ page_title }} ({{ entries|length }})</h3>
   {% if session.logged_in %}
-    <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+    <form action="{{ url_for('add_entry') }}" method="post" class="add-entry">
       <table>
         <tr><td>Title:</td>
-        <td><textarea name=title rows=2 cols=40></textarea></td></tr>
+        <td><textarea name="title" rows="2" cols="40"></textarea></td></tr>
         <tr><td>Author:</td>
-        <td><input type=text size=40 name=author></td></tr>
+        <td><input type="text" size="40" name="author"></td></tr>
         <tr><td>Has Read?:</td>
-        <td><input type=text size=40 name=read value='N'></td></tr>
+        <td><input type="text" size="40" name="read" value="N"></td></tr>
         <tr><td colspan="2">&nbsp;</td></tr>
-        <tr><td colspan=2"><input type=submit value=Save></td></tr>
+        <tr><td colspan=2"><input type="submit" value="Save"></td></tr>
       </table>
     </form>
   {% endif %}
-  <form action="{{ url_for('show_statuses') }}" method=post>
-  <ul class=entries>  
+
+  {% if sort_type %}
+  <div id="sort-div">
+    <form action="{{ url_for('show_entries') }}" method="post" id="sort-form">
+      <label for="sort_type">Sort by:</label>
+      <select name="sort_type" id="sort_type" onchange="this.form.submit()">
+       <option value="A" {% if sort_type=='A' %}selected{% endif %}>Author (asc)</option>
+       <option value="AD" {% if sort_type=='AD' %}selected{% endif %}>Author (desc)</option>
+       <option value="CD" {% if sort_type=='CD' %}selected{% endif %}>Date entry created (asc)</option>
+       <option value="CDD" {% if sort_type=='CDD' %}selected{% endif %}>Date entry created (desc)</option>
+       <option value="UD" {% if sort_type=='UD' %}selected{% endif %}>Date entry last updated (asc)</option>
+       <option value="UDD" {% if sort_type=='UDD' %}selected{% endif %}>Date entry last updated (desc)</option>
+      </select>
+    </form>
+  </div>
+  {% endif %}
+
+  <form action="{{ url_for('show_statuses') }}" method="post">
+  <ul class="entries">
   {% for entry in entries %}
     <li><input type="checkbox" name="check" value={{ entry.id }} />  <a href="{{ url_for('show_entry', book_id=entry.id)}}">{{ entry.title }}</a> by {{ entry.author|safe }}
   {% else %}
