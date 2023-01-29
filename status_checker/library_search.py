@@ -6,11 +6,11 @@ Created on Sun Jan 14 16:58:30 2018
 Search the Fairfax Country Library catalog for books and their availability.
 """
 
+from time import sleep
 import requests
 from bs4 import BeautifulSoup as bs
 from regex import sub
 import mechanize as mech
-from time import sleep
 
 def get_session_info():
     """Get the new session information necessary to search the catalog."""
