@@ -89,7 +89,7 @@ def show_entries(sort_type):
 @app.route('/read')
 def show_read_entries():
     db = get_db()
-    cur = db.execute("select id, title, author from books2 where has_read='Y' order by author asc")
+    cur = db.execute("select id, title, author from books2 where has_read='Y' order by updated desc")
     entries = cur.fetchall()
     return render_template('show_entries.html', page_title="Completed Books", entries=entries)
 
